@@ -67,6 +67,38 @@ The project uses a modular exchange abstraction:
 - `src/main.rs` - GUI application and order book visualization
 - `src/kmeans.rs` - K-means clustering for order analysis
 
+## L3 Order Book Estimation Algorithm
+
+### Core Algorithm
+
+The application estimates individual orders (L3) from aggregated market data (L2) using the following logic:
+
+#### Initialization
+- **L2 Snapshot**: Each price level begins as a queue with one aggregated order (the total quantity)
+
+#### Order Updates
+For each quantity update at a price level:
+
+1. **If new qty = 0**: Delete the entire price level (all orders canceled)
+
+2. **If price is new**: Add it with a queue containing one order = the new quantity
+
+3. **If qty decreased**: 
+   - Calculate `diff = old_sum - new_qty`
+   - Try removing an exact match from the queue's back (last occurrence)
+   - If no exact match: remove the largest order and add back `(largest - diff)` to simulate partial cancel/fill
+
+4. **If qty increased**: 
+   - Calculate `diff = new_qty - old_sum`
+   - Add it as a new order to the queue's back (FIFO: newest orders at end)
+
+#### Visualization
+- **Stacked bars per level**: Each bar represents an estimated individual order
+- **Color coding**: Darker colors for older/front-of-queue orders
+- **Optional K-Means mode**: Clusters orders by quantity size for pattern recognition
+
+This heuristic approach reveals market microstructure patterns and trading behavior that are normally hidden in public L2 data.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
