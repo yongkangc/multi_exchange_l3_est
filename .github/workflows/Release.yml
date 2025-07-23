@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Line 6
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run tests
+        run: cargo test --release
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Set binary extension
+        id: set-ext
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            echo "extension=.exe" >> $GITHUB_OUTPUT
+            echo "binary_path=target/release/binance_l3_est.exe" >> $GITHUB_OUTPUT
+          else
+            echo "extension=" >> $GITHUB_OUTPUT
+            echo "binary_path=target/release/binance_l3_est" >> $GITHUB_OUTPUT
+          fi
+        shell: bash
+
+      - name: Rename binary (non-Windows)
+        if: runner.os != 'Windows'
+        run: |
+          mv ${{ steps.set-ext.outputs.binary_path }} target/release/binance_l3_est-${{ runner.os }}-${{ runner.arch }}${{ steps.set-ext.outputs.extension }}
+        shell: bash
+
+      - name: Rename binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Rename-Item -Path "${{ steps.set-ext.outputs.binary_path }}" -NewName "binance_l3_est-${{ runner.os }}-${{ runner.arch }}${{ steps.set-ext.outputs.extension }}"
+        shell: pwsh
+
+      - name: Upload binaries as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries-${{ runner.os }}
+          path: target/release/binance_l3_est-${{ runner.os }}-${{ runner.arch }}${{ steps.set-ext.outputs.extension }}
+
+      - name: Create and upload release assets
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/release/binance_l3_est-${{ runner.os }}-${{ runner.arch }}${{ steps.set-ext.outputs.extension }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

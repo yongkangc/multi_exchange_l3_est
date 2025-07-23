@@ -1,0 +1,32 @@
+[package]
+name = "multi_exchange_l3_est"
+version = "0.1.0"
+edition = "2021"
+authors = ["yongkangc"]
+repository = "https://github.com/yongkangc/multi_exchange_l3_est"
+readme = "README.md"
+license = "MIT"
+keywords = ["order book", "binance", "hyperliquid", "trading", "hft", "virtualize"]
+
+[dependencies]
+eframe = "0.32.0"
+egui = { version = "0.32.0", features = ["default"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1.46", features = ["full"] }
+tokio-tungstenite = { version = "0.27", features = ["native-tls"] }
+tungstenite = { version = "0.27", features = ["native-tls"] }
+futures-util = "0.3.31"
+egui_extras = { version = "*", features = ["all_loaders"] }
+async-trait = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
+
+env_logger = { version = "0.11", default-features = false, features = [
+    "auto-color",
+    "humantime",
+] }
+reqwest = { version = "0.12.22", features = ["json", "blocking"] }
+rust_decimal = { version = "1.37.2", features = ["macros"] }
+egui_plot = "0.33.0"
+rand = "0.9.1"
+once_cell = "1.21.3"
