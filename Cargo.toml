@@ -8,6 +8,14 @@ readme = "README.md"
 license = "MIT"
 keywords = ["order book", "binance", "hyperliquid", "trading", "hft", "virtualize"]
 
+[lib]
+name = "multi_exchange_l3_est"
+path = "src/lib.rs"
+
+[[bin]]
+name = "multi_exchange_l3_est"
+path = "src/main.rs"
+
 [dependencies]
 eframe = "0.32.0"
 egui = { version = "0.32.0", features = ["default"] }
